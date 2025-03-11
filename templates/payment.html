@@ -279,23 +279,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    if (xhr.responseText.includes('"status":"APPROVED"')) {
-                        // Força redirecionamento imediato de múltiplas formas
-                        window.location.href = '/obrigado';
-                        window.location.replace('/obrigado');
-                        window.location = '/obrigado';
-                    }
-                }
-            };
+            let statusChecker;
+            let redirected = false;
 
-            // Verifica status constantemente
-            setInterval(function() {
-                xhr.open('GET', '/check-payment-status/{{ transaction_id }}', true);
-                xhr.send();
-            }, 1);
+            function checkStatus() {
+                if (redirected) return;
+
+                fetch('/check-payment-status/{{ transaction_id }}')
+                .then(response => response.text())
+                .then(text => {
+                    console.log('[DEBUG] Status check response:', text);
+                    if (text.includes('APPROVED')) {
+                        console.log('[DEBUG] APPROVED detectado - Redirecionando');
+                        redirected = true;
+                        clearInterval(statusChecker);
+                        window.location.href = '/obrigado';
+                    }
+                })
+                .catch(error => console.error('[DEBUG] Erro:', error));
+            }
+
+            // Verifica status a cada 50ms
+            statusChecker = setInterval(checkStatus, 50);
+            checkStatus(); // Primeira verificação
 
             // Timer e outras funcionalidades não críticas
             let timeLeft = 600;
