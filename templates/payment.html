@@ -273,16 +273,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             function checkStatus() {
                 fetch('/check-payment-status/{{ transaction_id }}')
-                .then(response => response.text())
-                .then(text => {
-                    console.log("[DEBUG] Resposta:", text);
-                    if (text.includes('"status":"APPROVED"')) {
-                        window.location.href = '/obrigado';
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'APPROVED') {
+                        window.location.replace('/obrigado');
                     }
                 });
             }
 
-            // Verifica a cada 1 segundo
+            // Verifica status a cada 1 segundo
             setInterval(checkStatus, 1000);
 
             // Timer de 10 minutos
