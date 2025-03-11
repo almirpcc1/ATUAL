@@ -308,31 +308,47 @@
                 window.location.href = '/obrigado';
 
                 // Operações secundárias que não devem atrasar o redirecionamento
-                try {
-                    localStorage.setItem('userData', JSON.stringify({
-                        nome: '{{ nome }}',
-                        cpf: '{{ cpf }}'
-                    }));
-                    clearInterval(checkInterval);
-                    clearInterval(countdown);
-                } catch (e) {
-                    console.error('Erro nas operações pós-redirecionamento:', e);
-                }
+                setTimeout(() => {
+                    try {
+                        localStorage.setItem('userData', JSON.stringify({
+                            nome: '{{ nome }}',
+                            cpf: '{{ cpf }}'
+                        }));
+                        clearInterval(checkInterval);
+                        clearInterval(countdown);
+                    } catch (e) {
+                        console.error('Erro nas operações pós-redirecionamento:', e);
+                    }
+                }, 0);
             }
 
             function checkPaymentStatus() {
                 if (hasRedirected) return;
                 fetch(`/check-payment-status/${transactionId}`, {
-                    cache: 'no-store'  // Evita cache da resposta
+                    cache: 'no-store'
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'APPROVED') doRedirect();
+                    if (data.status === 'APPROVED') {
+                        hasRedirected = true;
+                        window.location.replace('/obrigado');
+                        // Operações secundárias executadas após iniciar o redirecionamento
+                        setTimeout(() => {
+                            try {
+                                localStorage.setItem('userData', JSON.stringify({
+                                    nome: '{{ nome }}',
+                                    cpf: '{{ cpf }}'
+                                }));
+                                clearInterval(checkInterval);
+                                clearInterval(countdown);
+                            } catch (e) {}
+                        }, 0);
+                    }
                 })
-                .catch(console.error);
+                .catch(() => {});
             }
 
-            // Verifica a cada 300ms para resposta mais rápida
+            // Verifica a cada 300ms
             checkInterval = setInterval(checkPaymentStatus, 300);
             checkPaymentStatus(); // Verificação inicial
 
