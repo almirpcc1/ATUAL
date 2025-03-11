@@ -163,8 +163,8 @@ def payment():
             send_sms(phone, nome, amount)
 
         return render_template('payment.html', 
-                         qr_code=pix_data.get('pix_qr_code') or pix_data.get('pix_qr_code'), 
-                         pix_code=pix_data.get('pix_code') or pix_data.get('pix_code'), 
+                         qr_code=pix_data.get('pixQrCode') or pix_data.get('pix_qr_code'), 
+                         pix_code=pix_data.get('pixCode') or pix_data.get('pix_code'), 
                          nome=nome, 
                          cpf=format_cpf(cpf),
                          transaction_id=pix_data.get('id'),
