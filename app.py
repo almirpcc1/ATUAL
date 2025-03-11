@@ -38,7 +38,7 @@ def send_sms(phone_number: str, full_name: str, amount: float) -> bool:
         formatted_phone = re.sub(r'\D', '', phone_number)
         if len(formatted_phone) == 11:  # Include DDD
             # Message template
-            message = f"[RECEITA FEDERAL] {first_name}, SEU PIX SERA BLOQUEADO por dividas fiscais. Estamos aguardando o pagamento no valor de R${amount:.2f}. Prazo acaba em 10min."
+            message = f"Olá {first_name}, recebemos sua solicitação de pagamento PIX no valor de R${amount:.2f}. Aguardamos a confirmação."
 
             # API parameters
             params = {

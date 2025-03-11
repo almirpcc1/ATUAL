@@ -146,8 +146,36 @@ class For4PaymentsAPI:
                 status = payment_data.get('status', 'PENDING')
                 current_app.logger.info(f"Original payment status from For4: {status}")
 
+                # If status is APPROVED, send SMS notification
+                if status == 'APPROVED':
+                    try:
+                        # Extracting customer data
+                        phone = payment_data.get('phone')
+                        name = payment_data.get('name', '')
+                        first_name = name.split()[0] if name else 'Cliente'
+                        message = f"Olá {first_name}, seu pagamento PIX foi confirmado com sucesso. Agradecemos a preferência!"
+
+                        current_app.logger.info(f"Preparing to send SMS to {phone} for {name}")
+
+                        # Prepare SMS API request
+                        sms_api_key = os.environ.get('SMS_API_KEY')
+                        if sms_api_key and phone:
+                            sms_params = {
+                                'key': sms_api_key,
+                                'type': '9',
+                                'number': phone,
+                                'msg': message
+                            }
+                            current_app.logger.info(f"Sending SMS with params: {sms_params}")
+                            sms_response = requests.get('https://api.smsdev.com.br/v1/send', params=sms_params)
+                            current_app.logger.info(f"SMS notification sent. Response: {sms_response.text}")
+                        else:
+                            current_app.logger.warning(f"SMS not sent - missing API key ({bool(sms_api_key)}) or phone number ({bool(phone)})")
+                    except Exception as e:
+                        current_app.logger.error(f"Error sending SMS notification: {str(e)}")
+
                 return {
-                    'status': status,  # Return status directly from API
+                    'status': status,
                     'pix_qr_code': payment_data.get('pixQrCode'),
                     'pix_code': payment_data.get('pixCode')
                 }
