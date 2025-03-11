@@ -313,7 +313,9 @@
                     .then(data => {
                         console.log('Resposta do status do pagamento:', data);
 
-                        if (data.status === 'completed' || data.original_status === 'APPROVED' || data.original_status === 'PAID') {
+                        if (data.status === 'completed' || data.status === 'paid' || data.status === 'approved' || 
+                            data.original_status === 'APPROVED' || data.original_status === 'PAID' || 
+                            data.original_status === 'COMPLETED') {
                             console.log('Pagamento aprovado, redirecionando imediatamente...');
                             // Store user data first
                             const userData = {
@@ -326,7 +328,6 @@
                             clearInterval(checkInterval);
                             clearInterval(countdown);
 
-                            // Force immediate redirect
                             window.location.replace('/obrigado');
                             return; // Exit the function immediately
                         }
