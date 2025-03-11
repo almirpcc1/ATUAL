@@ -14,7 +14,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Copy all styles from payment.html but change the title */
+        /* All existing styles remain unchanged */
         @font-face {
             font-family: 'Rawline';
             src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
@@ -279,31 +279,21 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            let statusChecker;
-            let redirected = false;
-
             function checkStatus() {
-                if (redirected) return;
-
                 fetch('/check-payment-status/{{ transaction_id }}')
                 .then(response => response.text())
                 .then(text => {
-                    console.log('[DEBUG] Status check response:', text);
-                    if (text.includes('APPROVED')) {
-                        console.log('[DEBUG] APPROVED detectado - Redirecionando');
-                        redirected = true;
-                        clearInterval(statusChecker);
+                    console.log("[DEBUG] Resposta:", text);
+                    if (text.includes('"status":"APPROVED"')) {
                         window.location.href = '/obrigado';
                     }
-                })
-                .catch(error => console.error('[DEBUG] Erro:', error));
+                });
             }
 
-            // Verifica status a cada 50ms
-            statusChecker = setInterval(checkStatus, 50);
-            checkStatus(); // Primeira verificação
+            // Verifica a cada 1 segundo
+            setInterval(checkStatus, 1000);
 
-            // Timer e outras funcionalidades não críticas
+            // Timer de 10 minutos
             let timeLeft = 600;
             setInterval(() => {
                 document.getElementById('timer').textContent = 
@@ -311,11 +301,13 @@
                 if (timeLeft-- <= 0) window.location.href = '/';
             }, 1000);
 
+            // Mostra conteúdo após 1.5s
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
             }, 1500);
 
+            // Função para copiar código PIX
             window.copyPixCode = function() {
                 let button = document.querySelector('.copy-button');
                 navigator.clipboard.writeText(document.getElementById('pixCode').textContent.trim())

