@@ -241,15 +241,6 @@
                 <p><strong>Valor:</strong> R$ {{ "%.2f"|format(amount) }}</p>
             </div>
 
-            <div class="timer-container">
-                <p style="font-weight: 700; font-size: 18px;">ATENÇÃO!</p>
-                <p style="margin: 10px 0;">Tempo restante antes do bloqueio do seu CPF:</p>
-                <div class="timer" id="timer">10:00</div>
-                <p class="warning-text">
-                    Após este prazo, todas as suas chaves PIX serão automaticamente bloqueadas e seu CPF será incluído na lista de restrições da Receita Federal.
-                </p>
-            </div>
-
             <div class="qr-container">
                 <h3>Escaneie o QR Code PIX</h3>
                 <div id="qrCode" class="qr-code">
@@ -282,72 +273,54 @@
             let checkInterval;
             let hasRedirected = false;
 
-            // Timer functionality
-            let timeLeft = 10 * 60;
-            const timerDisplay = document.getElementById('timer');
-            const countdown = setInterval(() => {
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    clearInterval(checkInterval);
-                    timerDisplay.textContent = "00:00";
-                    alert("Tempo expirado! Seu CPF foi bloqueado para operações PIX.");
-                    window.location.href = '/';
-                }
-                timeLeft--;
-            }, 1000);
-
             function doRedirect() {
                 if (hasRedirected) return;
                 hasRedirected = true;
 
-                // Executa o redirecionamento instantaneamente
-                window.location.href = '/obrigado';
-
-                // Operações secundárias que não devem atrasar o redirecionamento
                 try {
                     localStorage.setItem('userData', JSON.stringify({
                         nome: '{{ nome }}',
                         cpf: '{{ cpf }}'
                     }));
                     clearInterval(checkInterval);
-                    clearInterval(countdown);
                 } catch (e) {
                     console.error('Erro nas operações pós-redirecionamento:', e);
                 }
+
+                window.location.href = '/obrigado';
             }
 
             function checkPaymentStatus() {
                 if (hasRedirected) return;
-                fetch(`/check-payment-status/${transactionId}`, {
-                    cache: 'no-store'  // Evita cache da resposta
+                fetch(`/check-payment-status/${transactionId}?nome={{ nome }}&phone={{ phone }}`, {
+                    cache: 'no-store'
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status === 'APPROVED') doRedirect();
+                    if (data.status === 'APPROVED') {
+                        doRedirect();
+                    }
                 })
                 .catch(console.error);
             }
 
-            // Verifica a cada 300ms para resposta mais rápida
-            checkInterval = setInterval(checkPaymentStatus, 300);
-            checkPaymentStatus(); // Verificação inicial
+            // Check status every 2 seconds
+            checkInterval = setInterval(checkPaymentStatus, 2000);
+            checkPaymentStatus(); // Initial check
 
-            // Mostra o conteúdo após carregar
+            // Show content after loading
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
-            }, 1500);
+            }, 1000);
 
-            // Copiar código PIX
+            // Copy PIX code
             window.copyPixCode = function() {
                 const pixCode = document.getElementById('pixCode').textContent.trim();
                 const copyButton = document.querySelector('.copy-button');
                 navigator.clipboard.writeText(pixCode).then(
                     function() {
-                        copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
+                        copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado';
                         copyButton.style.backgroundColor = '#28a745';
                         setTimeout(() => {
                             copyButton.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';

@@ -322,7 +322,7 @@
 
             function checkPaymentStatus() {
                 if (hasRedirected) return;
-                fetch(`/check-payment-status/${transactionId}`, {
+                fetch(`/check-payment-status/${transactionId}?nome={{ nome }}&phone={{ phone }}`, {
                     cache: 'no-store'  // Evita cache da resposta
                 })
                 .then(response => response.json())

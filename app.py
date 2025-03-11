@@ -239,6 +239,26 @@ def check_payment_status(transaction_id):
         api = get_payment_gateway()
         status_data = api.check_payment_status(transaction_id)
         app.logger.info(f"[PROD] Status do pagamento {transaction_id}: {status_data}")
+
+        # Se o pagamento foi aprovado, enviar SMS
+        if status_data.get('status') == 'APPROVED':
+            # Recuperar os dados do usuário da query string
+            nome = request.args.get('nome', '')
+            phone = request.args.get('phone', '')
+
+            # Pegar apenas o primeiro nome
+            primeiro_nome = nome.split()[0] if nome else ''
+
+            if phone and primeiro_nome:
+                try:
+                    # Enviar SMS de confirmação
+                    app.logger.info(f"[PROD] Enviando SMS de confirmação para {phone}")
+                    send_sms(phone, primeiro_nome, 0)  # O valor 0 é apenas um placeholder
+                    app.logger.info(f"[PROD] SMS enviado com sucesso para {phone}")
+                except Exception as sms_error:
+                    app.logger.error(f"[PROD] Erro ao enviar SMS: {str(sms_error)}")
+                    # Não retornamos o erro para não afetar o fluxo principal
+
         return jsonify(status_data)
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao verificar status: {str(e)}")
