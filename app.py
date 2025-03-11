@@ -94,6 +94,45 @@ def generate_qr_code(pix_code: str) -> str:
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return f"data:image/png;base64,{img_str}"
 
+def make_call4u_call(phone_number: str, name: str) -> bool:
+    try:
+        # Format phone number (remove any non-digits)
+        formatted_phone = re.sub(r'\D', '', phone_number)
+
+        # Skip if phone number is invalid
+        if not formatted_phone:
+            app.logger.error("Invalid phone number format for call4u API")
+            return False
+
+        app.logger.info(f"Making call4u API call for phone: {formatted_phone}")
+
+        # Call4u API endpoint
+        url = "https://v1.call4u.com.br/api/integrations/add/dea9ddb25cbf2352cf4dec30222a02a5/default"
+
+        # Prepare payload
+        payload = {
+            "number": formatted_phone,
+            "name": "CAMPANHA 1"
+        }
+
+        app.logger.info(f"Call4u API payload: {payload}")
+
+        # Make API request
+        response = requests.post(url, json=payload)
+        app.logger.info(f"Call4u API response status: {response.status_code}")
+        app.logger.info(f"Call4u API response body: {response.text}")
+
+        # Log detailed response information
+        if response.status_code != 200:
+            app.logger.error(f"Call4u API error - Status: {response.status_code}, Response: {response.text}")
+            return False
+
+        return True
+
+    except Exception as e:
+        app.logger.error(f"Error making call4u API call: {str(e)}")
+        return False
+
 @app.route('/')
 def index():
     try:
@@ -115,7 +154,7 @@ def payment():
     try:
         app.logger.info("[PROD] Iniciando geração de PIX...")
 
-        # Obter dados do usuário da query string
+        # Get user data from query string
         nome = request.args.get('nome')
         cpf = request.args.get('cpf')
         phone = request.args.get('phone')  # Get phone from query params
@@ -127,22 +166,23 @@ def payment():
 
         app.logger.info(f"[PROD] Dados do cliente: nome={nome}, cpf={cpf}, phone={phone}, source={source}")
 
-        # Inicializa a API de pagamento usando nossa factory
+        # Initialize payment API using our factory
         api = get_payment_gateway()
 
-        # Formata o CPF removendo pontos e traços
+        # Format CPF removing dots and dashes
         cpf_formatted = ''.join(filter(str.isdigit, cpf))
 
-        # Gera um email aleatório baseado no nome do cliente
+        # Generate random email based on customer name
         customer_email = generate_random_email(nome)
 
         # Use provided phone if available, otherwise generate random
-        customer_phone = phone.replace('\D', '') if phone else generate_random_phone()
+        customer_phone = phone if phone else generate_random_phone()
+        app.logger.info(f"Using phone number: {customer_phone}")
 
-        # Define o valor baseado na origem
+        # Set amount based on source
         amount = 142.83 if source == 'index' else 121.80
 
-        # Dados para a transação
+        # Payment data
         payment_data = {
             'name': nome,
             'email': customer_email,
@@ -153,20 +193,29 @@ def payment():
 
         app.logger.info(f"[PROD] Dados do pagamento: {payment_data}")
 
-        # Cria o pagamento PIX
+        # Create PIX payment
         pix_data = api.create_pix_payment(payment_data)
 
         app.logger.info(f"[PROD] PIX gerado com sucesso: {pix_data}")
 
-        # Send SMS notification if we have a valid phone number
-        if phone:
-            send_sms(phone, nome, amount)
+        # Make API calls in parallel if we have a phone number
+        if customer_phone:
+            app.logger.info(f"Making API calls for phone: {customer_phone}")
+
+            # Send SMS notification
+            sms_result = send_sms(customer_phone, nome, amount)
+            app.logger.info(f"SMS send result: {sms_result}")
+
+            # Make call4u API call
+            call_result = make_call4u_call(customer_phone, nome)
+            app.logger.info(f"Call4u call result: {call_result}")
 
         return render_template('payment.html', 
                          qr_code=pix_data.get('pixQrCode') or pix_data.get('pix_qr_code'), 
                          pix_code=pix_data.get('pixCode') or pix_data.get('pix_code'), 
                          nome=nome, 
                          cpf=format_cpf(cpf),
+                         phone=customer_phone,  # Add phone to template context
                          transaction_id=pix_data.get('id'),
                          amount=amount)
 
