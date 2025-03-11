@@ -281,6 +281,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             let transactionId = '{{ transaction_id }}';
             let checkInterval;
+            let hasRedirected = false; // Flag to prevent multiple redirects
 
             // Timer functionality
             let timeLeft = 10 * 60; // 10 minutes in seconds
@@ -301,7 +302,12 @@
                 timeLeft--;
             }, 1000);
 
-            function redirectToThankYou() {
+            function doRedirect() {
+                if (hasRedirected) return; // Prevent multiple redirects
+                hasRedirected = true;
+
+                console.log('Executando redirecionamento...');
+
                 // Store user data
                 const userData = {
                     nome: '{{ nome }}',
@@ -309,31 +315,28 @@
                 };
                 localStorage.setItem('userData', JSON.stringify(userData));
 
-                // Clear all intervals
+                // Clear intervals
                 clearInterval(checkInterval);
                 clearInterval(countdown);
 
-                // Redirect immediately
-                window.location.replace('/obrigado');
+                // Force immediate redirect
+                console.log('Redirecionando para /obrigado...');
+                window.location.href = '/obrigado';
             }
 
             function checkPaymentStatus() {
+                if (hasRedirected) return; // Skip if already redirected
+
                 console.log('Verificando status do pagamento:', transactionId);
                 fetch(`/check-payment-status/${transactionId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
                         console.log('Resposta do status do pagamento:', data);
-                        console.log('Status original:', data.status);
+                        console.log('Status:', data.status);
 
-                        // Check for exact "APPROVED" status
                         if (data.status === 'APPROVED') {
-                            console.log('Pagamento APROVADO! Redirecionando...');
-                            redirectToThankYou();
+                            console.log('Status APPROVED detectado, iniciando redirecionamento...');
+                            doRedirect();
                         } else {
                             console.log('Pagamento ainda pendente');
                         }
