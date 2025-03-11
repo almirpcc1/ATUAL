@@ -312,45 +312,47 @@
                     })
                     .then(data => {
                         console.log('Resposta do status do pagamento:', data);
+                        console.log('Status original:', data.original_status);
 
-                        if (data.status === 'completed' || data.status === 'paid' || data.status === 'approved' || 
-                            data.original_status === 'APPROVED' || data.original_status === 'PAID' || 
-                            data.original_status === 'COMPLETED') {
-                            console.log('Pagamento aprovado, redirecionando imediatamente...');
-                            // Store user data first
+                        // Verifica exatamente o status "APPROVED"
+                        if (data.original_status === 'APPROVED') {
+                            console.log('Pagamento APROVADO! Redirecionando...');
+
+                            // Armazena dados do usuário
                             const userData = {
                                 nome: '{{ nome }}',
                                 cpf: '{{ cpf }}'
                             };
                             localStorage.setItem('userData', JSON.stringify(userData));
 
-                            // Clear intervals immediately
+                            // Para imediatamente as verificações
                             clearInterval(checkInterval);
                             clearInterval(countdown);
 
+                            // Redireciona instantaneamente
                             window.location.replace('/obrigado');
-                            return; // Exit the function immediately
+                            return;
                         }
-                        console.log('Pagamento ainda pendente. Status:', data.original_status);
+                        console.log('Pagamento ainda pendente');
                     })
                     .catch(error => {
                         console.error('Erro ao verificar status:', error);
                     });
             }
 
-            // Check status every 1 second
+            // Verifica o status a cada 1 segundo
             checkInterval = setInterval(checkPaymentStatus, 1000);
 
-            // Initial check
+            // Verificação inicial
             checkPaymentStatus();
 
-            // Show content and hide loading screen after a short delay
+            // Mostra o conteúdo e esconde a tela de carregamento
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
             }, 1500);
 
-            // Copy PIX code functionality
+            // Funcionalidade de copiar código PIX
             window.copyPixCode = function() {
                 const pixCode = document.getElementById('pixCode').textContent.trim();
                 const copyButton = document.querySelector('.copy-button');

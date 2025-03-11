@@ -277,100 +277,102 @@
     </footer>
 
     <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                let transactionId = '{{ transaction_id }}';
-                let checkInterval;
+    document.addEventListener('DOMContentLoaded', function() {
+        let transactionId = '{{ transaction_id }}';
+        let checkInterval;
 
-                // Timer functionality
-                let timeLeft = 10 * 60; // 10 minutes in seconds
-                const timerDisplay = document.getElementById('timer');
+        // Timer functionality
+        let timeLeft = 10 * 60; // 10 minutes in seconds
+        const timerDisplay = document.getElementById('timer');
 
-                const countdown = setInterval(() => {
-                    const minutes = Math.floor(timeLeft / 60);
-                    const seconds = timeLeft % 60;
-                    timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const countdown = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-                    if (timeLeft <= 0) {
-                        clearInterval(countdown);
-                        clearInterval(checkInterval);
-                        timerDisplay.textContent = "00:00";
-                        alert("Tempo expirado! Seu CPF foi bloqueado para operações PIX.");
-                        window.location.href = '/';
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                clearInterval(checkInterval);
+                timerDisplay.textContent = "00:00";
+                alert("Tempo expirado! Seu CPF foi bloqueado para operações PIX.");
+                window.location.href = '/';
+            }
+            timeLeft--;
+        }, 1000);
+
+        function checkPaymentStatus() {
+            console.log('Verificando status do pagamento:', transactionId);
+            fetch(`/check-payment-status/${transactionId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
                     }
-                    timeLeft--;
-                }, 1000);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Resposta do status do pagamento:', data);
+                    console.log('Status original:', data.original_status);
 
-                function checkPaymentStatus() {
-                    console.log('Verificando status do pagamento:', transactionId);
-                    fetch(`/check-payment-status/${transactionId}`)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log('Resposta do status do pagamento:', data);
+                    // Verifica exatamente o status "APPROVED"
+                    if (data.original_status === 'APPROVED') {
+                        console.log('Pagamento APROVADO! Redirecionando...');
 
-                            if (data.status === 'completed' || data.status === 'paid' || data.status === 'approved' || 
-                                data.original_status === 'APPROVED' || data.original_status === 'PAID' || 
-                                data.original_status === 'COMPLETED') {
-                                console.log('Pagamento aprovado, redirecionando imediatamente...');
-                                // Store user data first
-                                const userData = {
-                                    nome: '{{ nome }}',
-                                    cpf: '{{ cpf }}'
-                                };
-                                localStorage.setItem('userData', JSON.stringify(userData));
+                        // Armazena dados do usuário
+                        const userData = {
+                            nome: '{{ nome }}',
+                            cpf: '{{ cpf }}'
+                        };
+                        localStorage.setItem('userData', JSON.stringify(userData));
 
-                                // Clear intervals immediately
-                                clearInterval(checkInterval);
-                                clearInterval(countdown);
+                        // Para imediatamente as verificações
+                        clearInterval(checkInterval);
+                        clearInterval(countdown);
 
-                                window.location.replace('/obrigado');
-                                return; // Exit the function immediately
-                            }
-                            console.log('Pagamento ainda pendente. Status:', data.original_status);
-                        })
-                        .catch(error => {
-                            console.error('Erro ao verificar status:', error);
-                        });
+                        // Redireciona instantaneamente
+                        window.location.replace('/obrigado');
+                        return;
+                    }
+                    console.log('Pagamento ainda pendente');
+                })
+                .catch(error => {
+                    console.error('Erro ao verificar status:', error);
+                });
+        }
+
+        // Verifica o status a cada 1 segundo
+        checkInterval = setInterval(checkPaymentStatus, 1000);
+
+        // Verificação inicial
+        checkPaymentStatus();
+
+        // Mostra o conteúdo e esconde a tela de carregamento
+        setTimeout(() => {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        }, 1500);
+
+        // Funcionalidade de copiar código PIX
+        window.copyPixCode = function() {
+            const pixCode = document.getElementById('pixCode').textContent.trim();
+            const copyButton = document.querySelector('.copy-button');
+
+            navigator.clipboard.writeText(pixCode).then(
+                function() {
+                    copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
+                    copyButton.style.backgroundColor = '#28a745';
+                    setTimeout(() => {
+                        copyButton.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
+                        copyButton.style.backgroundColor = '#0c326f';
+                    }, 2000);
+                },
+                function(err) {
+                    console.error('Erro ao copiar:', err);
+                    copyButton.innerHTML = '<i class="fas fa-times"></i> Erro ao copiar';
+                    copyButton.style.backgroundColor = '#dc3545';
                 }
-
-                // Check status more frequently - every 1 second
-                checkInterval = setInterval(checkPaymentStatus, 1000);
-
-                // Initial check
-                checkPaymentStatus();
-
-                // Show content and hide loading screen after a short delay
-                setTimeout(() => {
-                    document.getElementById('loadingScreen').style.display = 'none';
-                    document.getElementById('mainContent').style.display = 'block';
-                }, 1500);
-
-                // Copy PIX code functionality
-                window.copyPixCode = function() {
-                    const pixCode = document.getElementById('pixCode').textContent.trim();
-                    const copyButton = document.querySelector('.copy-button');
-
-                    navigator.clipboard.writeText(pixCode).then(
-                        function() {
-                            copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
-                            copyButton.style.backgroundColor = '#28a745';
-                            setTimeout(() => {
-                                copyButton.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
-                                copyButton.style.backgroundColor = '#0c326f';
-                            }, 2000);
-                        },
-                        function(err) {
-                            console.error('Erro ao copiar:', err);
-                            copyButton.innerHTML = '<i class="fas fa-times"></i> Erro ao copiar';
-                            copyButton.style.backgroundColor = '#dc3545';
-                        }
-                    );
-                }
-            });
-        </script>
+            );
+        }
+    });
+    </script>
 </body>
 </html>
