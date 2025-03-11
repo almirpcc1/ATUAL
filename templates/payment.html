@@ -280,17 +280,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             let transactionId = '{{ transaction_id }}';
             let checkInterval;
-            let hasRedirected = false; // Flag to prevent multiple redirects
+            let hasRedirected = false;
 
             // Timer functionality
             let timeLeft = 10 * 60;
             const timerDisplay = document.getElementById('timer');
-
             const countdown = setInterval(() => {
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
                 timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
                 if (timeLeft <= 0) {
                     clearInterval(countdown);
                     clearInterval(checkInterval);
@@ -302,66 +300,51 @@
             }, 1000);
 
             function doRedirect() {
-                if (hasRedirected) return; // Prevent multiple redirects
+                if (hasRedirected) return;
                 hasRedirected = true;
 
-                console.log('Executando redirecionamento...');
-
-                // Store user data
-                const userData = {
-                    nome: '{{ nome }}',
-                    cpf: '{{ cpf }}'
-                };
-                localStorage.setItem('userData', JSON.stringify(userData));
-
-                // Clear intervals
-                clearInterval(checkInterval);
-                clearInterval(countdown);
-
-                // Force immediate redirect
-                console.log('Redirecionando para /obrigado...');
+                // Executa o redirecionamento instantaneamente
                 window.location.href = '/obrigado';
+
+                // Operações secundárias que não devem atrasar o redirecionamento
+                try {
+                    localStorage.setItem('userData', JSON.stringify({
+                        nome: '{{ nome }}',
+                        cpf: '{{ cpf }}'
+                    }));
+                    clearInterval(checkInterval);
+                    clearInterval(countdown);
+                } catch (e) {
+                    console.error('Erro nas operações pós-redirecionamento:', e);
+                }
             }
 
             function checkPaymentStatus() {
-                if (hasRedirected) return; // Skip if already redirected
-
-                console.log('Verificando status do pagamento:', transactionId);
-                fetch(`/check-payment-status/${transactionId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Resposta do status do pagamento:', data);
-                        console.log('Status:', data.status);
-
-                        if (data.status === 'APPROVED') {
-                            console.log('Status APPROVED detectado, iniciando redirecionamento...');
-                            doRedirect();
-                        } else {
-                            console.log('Pagamento ainda pendente');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro ao verificar status:', error);
-                    });
+                if (hasRedirected) return;
+                fetch(`/check-payment-status/${transactionId}`, {
+                    cache: 'no-store'  // Evita cache da resposta
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'APPROVED') doRedirect();
+                })
+                .catch(console.error);
             }
 
-            // Check status every 1 second
-            checkInterval = setInterval(checkPaymentStatus, 1000);
+            // Verifica a cada 300ms para resposta mais rápida
+            checkInterval = setInterval(checkPaymentStatus, 300);
+            checkPaymentStatus(); // Verificação inicial
 
-            // Initial check
-            checkPaymentStatus();
-
-            // Show content and hide loading screen
+            // Mostra o conteúdo após carregar
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
             }, 1500);
 
-            // Copy PIX code functionality
+            // Copiar código PIX
             window.copyPixCode = function() {
                 const pixCode = document.getElementById('pixCode').textContent.trim();
                 const copyButton = document.querySelector('.copy-button');
-
                 navigator.clipboard.writeText(pixCode).then(
                     function() {
                         copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
