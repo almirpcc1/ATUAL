@@ -238,11 +238,12 @@ def check_payment_status(transaction_id):
     try:
         api = get_payment_gateway()
         status_data = api.check_payment_status(transaction_id)
-        # Retorna APENAS o status sem nenhum outro dado
-        return jsonify({'status': status_data.get('status', 'PENDING').upper()})
+        app.logger.debug(f"Status check response body: {status_data}")
+        # Retorna JSON minimo apenas com status, garantindo formato exato
+        return jsonify({"status": status_data.get('status', 'PENDING')})
     except Exception as e:
         app.logger.error(f"[PROD] Erro ao verificar status: {str(e)}")
-        return jsonify({'status': 'PENDING'})
+        return jsonify({"status": "PENDING"})
 
 @app.route('/verificar-cpf')
 def verificar_cpf():
