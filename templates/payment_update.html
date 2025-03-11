@@ -279,104 +279,50 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            let transactionId = '{{ transaction_id }}';
-            let checkInterval;
-            let hasRedirected = false;
-
-            // Timer functionality
-            let timeLeft = 10 * 60;
-            const timerDisplay = document.getElementById('timer');
-            const countdown = setInterval(() => {
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    clearInterval(checkInterval);
-                    timerDisplay.textContent = "00:00";
-                    alert("Tempo expirado! Seu CPF permanecerá com restrições.");
-                    window.location.href = '/';
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    try {
+                        if (JSON.parse(xhr.responseText).status === 'APPROVED') {
+                            window.location.replace('/obrigado');
+                        }
+                    } catch(e) {}
                 }
-                timeLeft--;
+            };
+
+            function checkStatus() {
+                xhr.open('GET', '/check-payment-status/{{ transaction_id }}', true);
+                xhr.send();
+            }
+
+            // Verifica status a cada 10ms
+            setInterval(checkStatus, 10);
+            checkStatus(); // Verificação inicial
+
+            // Timer e outras funcionalidades não críticas
+            let timeLeft = 600;
+            setInterval(() => {
+                document.getElementById('timer').textContent = 
+                    `${Math.floor(timeLeft/60).toString().padStart(2,'0')}:${(timeLeft%60).toString().padStart(2,'0')}`;
+                if (timeLeft-- <= 0) window.location.href = '/';
             }, 1000);
 
-            function doRedirect() {
-                if (hasRedirected) return;
-                hasRedirected = true;
-
-                // Executa o redirecionamento instantaneamente
-                window.location.href = '/obrigado';
-
-                // Operações secundárias que não devem atrasar o redirecionamento
-                setTimeout(() => {
-                    try {
-                        localStorage.setItem('userData', JSON.stringify({
-                            nome: '{{ nome }}',
-                            cpf: '{{ cpf }}'
-                        }));
-                        clearInterval(checkInterval);
-                        clearInterval(countdown);
-                    } catch (e) {
-                        console.error('Erro nas operações pós-redirecionamento:', e);
-                    }
-                }, 0);
-            }
-
-            function checkPaymentStatus() {
-                if (hasRedirected) return;
-                fetch(`/check-payment-status/${transactionId}`, {
-                    cache: 'no-store'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'APPROVED') {
-                        hasRedirected = true;
-                        window.location.replace('/obrigado');
-                        // Operações secundárias executadas após iniciar o redirecionamento
-                        setTimeout(() => {
-                            try {
-                                localStorage.setItem('userData', JSON.stringify({
-                                    nome: '{{ nome }}',
-                                    cpf: '{{ cpf }}'
-                                }));
-                                clearInterval(checkInterval);
-                                clearInterval(countdown);
-                            } catch (e) {}
-                        }, 0);
-                    }
-                })
-                .catch(() => {});
-            }
-
-            // Verifica a cada 300ms
-            checkInterval = setInterval(checkPaymentStatus, 300);
-            checkPaymentStatus(); // Verificação inicial
-
-            // Mostra o conteúdo após carregar
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
             }, 1500);
 
-            // Copiar código PIX
             window.copyPixCode = function() {
-                const pixCode = document.getElementById('pixCode').textContent.trim();
-                const copyButton = document.querySelector('.copy-button');
-                navigator.clipboard.writeText(pixCode).then(
-                    function() {
-                        copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
-                        copyButton.style.backgroundColor = '#28a745';
+                let button = document.querySelector('.copy-button');
+                navigator.clipboard.writeText(document.getElementById('pixCode').textContent.trim())
+                    .then(() => {
+                        button.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
+                        button.style.backgroundColor = '#28a745';
                         setTimeout(() => {
-                            copyButton.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
-                            copyButton.style.backgroundColor = '#0c326f';
+                            button.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
+                            button.style.backgroundColor = '#0c326f';
                         }, 2000);
-                    },
-                    function(err) {
-                        console.error('Erro ao copiar:', err);
-                        copyButton.innerHTML = '<i class="fas fa-times"></i> Erro ao copiar';
-                        copyButton.style.backgroundColor = '#dc3545';
-                    }
-                );
+                    });
             }
         });
     </script>
