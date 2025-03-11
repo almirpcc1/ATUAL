@@ -147,22 +147,21 @@ class For4PaymentsAPI:
                 current_app.logger.info(f"Original payment status from For4: {status}")
 
                 return {
-                    'status': status,
-                    'original_status': status,  # Mantém o status original da API
+                    'status': status,  # Return status directly from API
                     'pix_qr_code': payment_data.get('pixQrCode'),
                     'pix_code': payment_data.get('pixCode')
                 }
             elif response.status_code == 404:
                 current_app.logger.warning(f"Payment {payment_id} not found")
-                return {'status': 'PENDING', 'original_status': 'PENDING'}
+                return {'status': 'PENDING'}
             else:
                 error_message = f"Failed to fetch payment status (Status: {response.status_code})"
                 current_app.logger.error(error_message)
-                return {'status': 'PENDING', 'original_status': 'PENDING'}
+                return {'status': 'PENDING'}
 
         except Exception as e:
             current_app.logger.error(f"Error checking payment status: {str(e)}")
-            return {'status': 'PENDING', 'original_status': 'PENDING'}
+            return {'status': 'PENDING'}
 
 def create_payment_api(secret_key: Optional[str] = None) -> For4PaymentsAPI:
     """Factory function to create For4PaymentsAPI instance"""

