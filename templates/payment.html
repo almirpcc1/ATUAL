@@ -275,19 +275,14 @@
                 fetch('/check-payment-status/{{ transaction_id }}')
                 .then(response => response.text())
                 .then(text => {
-                    console.log("Resposta recebida:", text);
-                    if (text.includes('"status":"APPROVED"')) {
-                        console.log("Pagamento aprovado, redirecionando!");
-                        window.location.href = '/obrigado';
+                    if (text.indexOf('"status":"APPROVED"') !== -1) {
+                        window.location = '/obrigado';
                     }
-                })
-                .catch(error => console.error("Erro na requisição de status:", error));
+                });
             }
 
-            // Verifica cada 1000ms (1 segundo)
             setInterval(checkStatus, 1000);
 
-            // Timer de 10 minutos para redirecionamento se necessário
             let timeLeft = 600;
             setInterval(() => {
                 document.getElementById('timer').textContent = 
@@ -295,13 +290,11 @@
                 if (timeLeft-- <= 0) window.location.href = '/';
             }, 1000);
 
-            // Mostra o conteúdo após 1.5 segundos
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
             }, 1500);
 
-            // Função para copiar código PIX
             window.copyPixCode = function() {
                 let button = document.querySelector('.copy-button');
                 navigator.clipboard.writeText(document.getElementById('pixCode').textContent.trim())
