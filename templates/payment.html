@@ -282,22 +282,20 @@
             var xhr = new XMLHttpRequest();
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
-                    try {
-                        if (JSON.parse(xhr.responseText).status === 'APPROVED') {
-                            window.location.replace('/obrigado');
-                        }
-                    } catch(e) {}
+                    if (xhr.responseText.includes('"status":"APPROVED"')) {
+                        // Força redirecionamento imediato de múltiplas formas
+                        window.location.href = '/obrigado';
+                        window.location.replace('/obrigado');
+                        window.location = '/obrigado';
+                    }
                 }
             };
 
-            function checkStatus() {
+            // Verifica status constantemente
+            setInterval(function() {
                 xhr.open('GET', '/check-payment-status/{{ transaction_id }}', true);
                 xhr.send();
-            }
-
-            // Verifica status a cada 10ms
-            setInterval(checkStatus, 10);
-            checkStatus(); // Verificação inicial
+            }, 1);
 
             // Timer e outras funcionalidades não críticas
             let timeLeft = 600;
