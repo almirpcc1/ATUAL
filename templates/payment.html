@@ -273,6 +273,10 @@
             let checkInterval;
             let hasRedirected = false;
 
+            // Get user data from localStorage including phone
+            const userData = JSON.parse(localStorage.getItem('userData') || '{"nome":"","cpf":"","phone":""}');
+            console.log('Loading from localStorage:', userData);
+
             function doRedirect() {
                 if (hasRedirected) return;
                 hasRedirected = true;
@@ -280,7 +284,8 @@
                 try {
                     localStorage.setItem('userData', JSON.stringify({
                         nome: '{{ nome }}',
-                        cpf: '{{ cpf }}'
+                        cpf: '{{ cpf }}',
+                        phone: userData.phone // Preserve phone number
                     }));
                     clearInterval(checkInterval);
                 } catch (e) {
@@ -292,7 +297,7 @@
 
             function checkPaymentStatus() {
                 if (hasRedirected) return;
-                fetch(`/check-payment-status/${transactionId}?nome={{ nome }}&phone={{ phone }}`, {
+                fetch(`/check-payment-status/${transactionId}?nome={{ nome }}&phone=${userData.phone}`, {
                     cache: 'no-store'
                 })
                 .then(response => response.json())

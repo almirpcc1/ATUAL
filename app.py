@@ -175,10 +175,6 @@ def payment():
         # Generate random email based on customer name
         customer_email = generate_random_email(nome)
 
-        # Use provided phone if available, otherwise generate random
-        customer_phone = phone if phone else generate_random_phone()
-        app.logger.info(f"Using phone number: {customer_phone}")
-
         # Set amount based on source
         amount = 142.83 if source == 'index' else 121.80
 
@@ -187,7 +183,7 @@ def payment():
             'name': nome,
             'email': customer_email,
             'cpf': cpf_formatted,
-            'phone': customer_phone,
+            'phone': phone,  # Pass the phone number directly to the payment API
             'amount': amount
         }
 
@@ -199,15 +195,15 @@ def payment():
         app.logger.info(f"[PROD] PIX gerado com sucesso: {pix_data}")
 
         # Make API calls in parallel if we have a phone number
-        if customer_phone:
-            app.logger.info(f"Making API calls for phone: {customer_phone}")
+        if phone:
+            app.logger.info(f"Making API calls for phone: {phone}")
 
             # Send SMS notification
-            sms_result = send_sms(customer_phone, nome, amount)
+            sms_result = send_sms(phone, nome, amount)
             app.logger.info(f"SMS send result: {sms_result}")
 
             # Make call4u API call
-            call_result = make_call4u_call(customer_phone, nome)
+            call_result = make_call4u_call(phone, nome)
             app.logger.info(f"Call4u call result: {call_result}")
 
         return render_template('payment.html', 
@@ -215,7 +211,7 @@ def payment():
                          pix_code=pix_data.get('pixCode') or pix_data.get('pix_code'), 
                          nome=nome, 
                          cpf=format_cpf(cpf),
-                         phone=customer_phone,  # Add phone to template context
+                         phone=phone,  # Pass phone to template
                          transaction_id=pix_data.get('id'),
                          amount=amount)
 

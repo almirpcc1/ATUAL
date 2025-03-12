@@ -26,11 +26,6 @@ class For4PaymentsAPI:
         domain = random.choice(domains)
         return f"{clean_name}{random_num}@{domain}"
 
-    def _generate_random_phone(self) -> str:
-        ddd = str(random.randint(11, 99))
-        number = ''.join(random.choices(string.digits, k=8))
-        return f"{ddd}{number}"
-
     def create_pix_payment(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a PIX payment request"""
         if not self.secret_key or len(self.secret_key) < 10:
@@ -54,7 +49,15 @@ class For4PaymentsAPI:
             if not email or '@' not in email:
                 email = self._generate_random_email(data['name'])
 
-            phone = self._generate_random_phone()
+            # Use the provided phone number, ensuring it's properly formatted
+            phone = data.get('phone', '')
+            if not phone:
+                current_app.logger.warning("No phone number provided in payment data")
+                phone = '11999999999'  # Fallback default if no phone provided
+            else:
+                # Remove any non-digit characters from phone
+                phone = ''.join(filter(str.isdigit, phone))
+                current_app.logger.info(f"Using customer phone number: {phone}")
 
             payment_data = {
                 "name": data['name'],
